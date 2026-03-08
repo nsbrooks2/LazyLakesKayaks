@@ -364,31 +364,32 @@ const Home = ({ onBook }: { onBook: () => void }) => {
           >
             Lazy Lakes Kayaks
           </motion.h1>
-          <motion.p 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="text-xl md:text-2xl mb-8 font-light"
-          >
-            Established in Houghton Lake, Michigan. Beginner-friendly kayak and paddle board rentals in the heart of Michigan's lake country.
-          </motion.p>
+          <div className="flex flex-col md:flex-row items-center gap-8 mb-12">
+            <motion.p 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="text-xl md:text-2xl font-light md:text-left flex-1"
+            >
+              Established in Houghton Lake, Michigan. Beginner-friendly kayak and paddle board rentals in the heart of Michigan's lake country.
+            </motion.p>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.6 }}
+              className="w-full md:w-80 shrink-0"
+            >
+              <WeatherWidget />
+            </motion.div>
+          </div>
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 }}
-            className="flex flex-col sm:flex-row gap-4 justify-center mb-12"
+            className="flex flex-col sm:flex-row gap-4 justify-center md:justify-start"
           >
             <button onClick={onBook} className="btn-secondary text-lg px-10">Book Your Kayak Today</button>
             <a href="tel:630-528-8103" className="btn-primary text-lg px-10 bg-navy-blue text-white border-none">Call or Text Now</a>
-          </motion.div>
-          
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.6 }}
-            className="max-w-md mx-auto"
-          >
-            <WeatherWidget />
           </motion.div>
         </div>
       </section>
