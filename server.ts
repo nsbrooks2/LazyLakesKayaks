@@ -1,4 +1,6 @@
 import express from "express";
+import session from "express-session";
+import cookieParser from "cookie-parser";
 import { createServer as createViteServer } from "vite";
 import Database from "better-sqlite3";
 import nodemailer from "nodemailer";
@@ -43,15 +45,6 @@ db.exec(`
     FOREIGN KEY(booking_id) REFERENCES bookings(id)
   );
 
-  CREATE TABLE IF NOT EXISTS reviews (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL,
-    rating INTEGER NOT NULL,
-    comment TEXT NOT NULL,
-    approved INTEGER DEFAULT 0,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-  );
-
   CREATE TABLE IF NOT EXISTS api_usage (
     date TEXT PRIMARY KEY,
     request_count INTEGER DEFAULT 0
@@ -63,6 +56,18 @@ async function startServer() {
   const PORT = 3000;
 
   app.use(express.json());
+  app.use(cookieParser());
+  app.use(session({
+    secret: process.env.SESSION_SECRET || "lazy-lake-secret",
+    resave: false,
+    saveUninitialized: false,
+    cookie: { 
+      secure: true, 
+      sameSite: 'none',
+      httpOnly: true,
+      maxAge: 24 * 60 * 60 * 1000 // 24 hours
+    }
+  }));
 
   // Email Transporter
   const transporter = (process.env.SMTP_HOST && !process.env.SMTP_HOST.includes('@')) 
@@ -164,21 +169,6 @@ async function startServer() {
       console.error("Gemini API Error:", error.message);
       // Do not expose raw error to user
       res.status(500).json({ error: "An error occurred while generating the image" });
-    }
-  });
-
-  app.get("/api/reviews", (req, res) => {
-    const reviews = db.prepare("SELECT * FROM reviews WHERE approved = 1 ORDER BY created_at DESC").all();
-    res.json(reviews);
-  });
-
-  app.post("/api/reviews", (req, res) => {
-    const { name, rating, comment } = req.body;
-    try {
-      db.prepare("INSERT INTO reviews (name, rating, comment) VALUES (?, ?, ?)").run(name, rating, comment);
-      res.json({ success: true });
-    } catch (error) {
-      res.status(500).json({ error: "Failed to submit review" });
     }
   });
 

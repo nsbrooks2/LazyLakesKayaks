@@ -16,15 +16,12 @@ import {
   Facebook,
   CheckCircle2,
   Clock,
-  DollarSign,
-  Star,
-  MessageSquare,
-  Trash2
+  DollarSign
 } from 'lucide-react';
 import { format } from 'date-fns';
 import DatePicker from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
-import { PRICING, LOCATIONS, Booking, Review } from './types';
+import { PRICING, LOCATIONS, Booking } from './types';
 
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
@@ -40,21 +37,6 @@ L.Icon.Default.mergeOptions({
 });
 
 // --- Components ---
-
-const StarRating = ({ rating, setRating, interactive = false }: { rating: number, setRating?: (r: number) => void, interactive?: boolean }) => {
-  return (
-    <div className="flex gap-1">
-      {[1, 2, 3, 4, 5].map((s) => (
-        <Star
-          key={s}
-          size={20}
-          className={`${s <= rating ? 'fill-sunset-orange text-sunset-orange' : 'text-gray-300'} ${interactive ? 'cursor-pointer' : ''}`}
-          onClick={() => interactive && setRating && setRating(s)}
-        />
-      ))}
-    </div>
-  );
-};
 
 const KayakIcon = ({ className = "w-6 h-6" }: { className?: string }) => (
   <svg 
@@ -74,17 +56,20 @@ const KayakIcon = ({ className = "w-6 h-6" }: { className?: string }) => (
 
 const Navbar = ({ activeTab, setActiveTab }: { activeTab: string, setActiveTab: (t: string) => void }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const tabs = ['Home', 'About', 'Rentals', 'Book', 'Waiver', 'FAQ', 'Reviews', 'Contact'];
+  const tabs = ['Home', 'About', 'Rentals', 'Book', 'Waiver', 'FAQ', 'Contact'];
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-bottom border-black/5">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-20 items-center">
           <div className="flex items-center gap-3 cursor-pointer" onClick={() => setActiveTab('Home')}>
-            <div className="bg-lake-blue/10 p-2 rounded-xl text-lake-blue shadow-sm">
-              <KayakIcon className="w-6 h-6" />
-            </div>
-            <span className="font-serif text-2xl font-bold text-lake-blue tracking-tight">Lazy Lakes Kayaks</span>
+            <img 
+              src="https://image2url.com/r2/default/images/1772999272617-606b620d-8e94-4e92-8327-826affa471e5.png" 
+              alt="Lazy Lakes Kayaks Logo" 
+              className="h-12 w-auto"
+              referrerPolicy="no-referrer"
+            />
+            <span className="font-serif text-2xl font-bold text-lake-blue tracking-tight hidden sm:block">Lazy Lakes Kayaks</span>
           </div>
           
           <div className="hidden md:flex space-x-8">
@@ -310,14 +295,17 @@ const FAQ = () => {
   );
 };
 
-const Footer = () => (
+const Footer = ({ setActiveTab }: { setActiveTab: (t: string) => void }) => (
   <footer className="bg-lake-blue text-white py-16">
     <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 md:grid-cols-3 gap-12">
       <div>
         <div className="flex items-center gap-3 mb-4">
-          <div className="bg-white/10 p-2 rounded-lg text-white">
-            <KayakIcon className="w-6 h-6" />
-          </div>
+          <img 
+            src="https://image2url.com/r2/default/images/1772999272617-606b620d-8e94-4e92-8327-826affa471e5.png" 
+            alt="Lazy Lakes Kayaks Logo" 
+            className="h-16 w-auto brightness-0 invert"
+            referrerPolicy="no-referrer"
+          />
           <h3 className="font-serif text-2xl">Lazy Lakes Kayaks</h3>
         </div>
         <p className="text-blue-100/80 mb-6">
@@ -339,7 +327,9 @@ const Footer = () => (
       <div>
         <h4 className="font-bold mb-4 uppercase tracking-widest text-sm">Payments</h4>
         <p className="text-blue-100/80 mb-4">We accept Cash, Venmo, and PayPal only.</p>
-        <p className="text-xs text-blue-100/40">© 2026 Lazy Lakes Kayaks. All rights reserved.</p>
+        <div className="flex justify-between items-end mt-8 border-t border-white/10 pt-8">
+          <p className="text-xs text-blue-100/40">© 2026 Lazy Lakes Kayaks. All rights reserved.</p>
+        </div>
       </div>
     </div>
   </footer>
@@ -348,22 +338,25 @@ const Footer = () => (
 // --- Pages ---
 
 const Home = ({ onBook }: { onBook: () => void }) => {
-  const [reviews, setReviews] = useState<Review[]>([]);
-
-  useEffect(() => {
-    fetch('/api/reviews')
-      .then(res => res.json())
-      .then(data => setReviews(data.slice(0, 3)));
-  }, []);
-
   return (
     <div className="pt-20">
-      <section className="relative h-[90vh] flex items-center justify-center overflow-hidden bg-navy-blue">
-        <div className="relative z-10 text-center text-white px-4 max-w-4xl">
+      <section className="relative h-screen flex items-center justify-center overflow-hidden">
+        {/* Background Image with Overlay */}
+        <div className="absolute inset-0 z-0">
+          <img 
+            src="https://image2url.com/r2/default/images/1772999509698-c69d941d-9688-48f7-9fc1-a29a4fba81d7.jpg"
+            alt="Houghton Lake Background"
+            className="w-full h-full object-cover"
+            referrerPolicy="no-referrer"
+          />
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px]"></div>
+        </div>
+
+        <div className="relative z-10 text-center text-white px-4 max-w-4xl flex flex-col items-center">
           <motion.h1 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="font-serif text-5xl md:text-7xl mb-6"
+            className="font-serif text-6xl md:text-8xl mb-6 drop-shadow-2xl"
           >
             Lazy Lakes Kayaks
           </motion.h1>
@@ -371,25 +364,29 @@ const Home = ({ onBook }: { onBook: () => void }) => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="text-xl md:text-2xl mb-8 font-light"
+            className="text-xl md:text-3xl mb-12 font-light max-w-2xl drop-shadow-lg"
           >
-            Established in Houghton Lake, Michigan. Beginner-friendly kayak and paddle board rentals in the heart of Michigan's lake country.
+            Beginner-friendly kayak and paddle board rentals in the heart of Michigan's lake country.
           </motion.p>
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 }}
-            className="flex flex-col sm:flex-row gap-4 justify-center mb-12"
+            className="flex flex-col sm:flex-row gap-6 justify-center mb-16"
           >
-            <button onClick={onBook} className="btn-secondary text-lg px-10">Book Your Kayak Today</button>
-            <a href="tel:630-528-8103" className="btn-primary text-lg px-10 bg-navy-blue text-white border-none">Call or Text Now</a>
+            <button onClick={onBook} className="btn-secondary text-xl px-12 py-4 bg-white text-lake-blue hover:bg-lake-blue hover:text-white border-none transition-all duration-300 shadow-xl">
+              Book Your Kayak Today
+            </button>
+            <a href="tel:630-528-8103" className="btn-primary text-xl px-12 py-4 bg-transparent border-2 border-white text-white hover:bg-white/10 transition-all duration-300 backdrop-blur-sm">
+              Call or Text Now
+            </a>
           </motion.div>
           
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.6 }}
-            className="max-w-md mx-auto"
+            className="max-w-md mx-auto w-full"
           >
             <WeatherWidget />
           </motion.div>
@@ -413,138 +410,18 @@ const Home = ({ onBook }: { onBook: () => void }) => {
       </section>
 
       <MapSection />
-
-      {reviews.length > 0 && (
-        <section className="py-24 bg-sand">
-          <div className="max-w-7xl mx-auto px-4">
-            <h2 className="font-serif text-4xl mb-12 text-center text-lake-blue">What Our Paddlers Say</h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {reviews.map((review) => (
-                <div key={review.id} className="glass-card p-8 rounded-3xl">
-                  <StarRating rating={review.rating} />
-                  <p className="mt-4 text-gray-600 italic">"{review.comment}"</p>
-                  <p className="mt-6 font-bold text-lake-blue">— {review.name}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
-    </div>
-  );
-};
-
-const Reviews = () => {
-  const [reviews, setReviews] = useState<Review[]>([]);
-  const [name, setName] = useState('');
-  const [rating, setRating] = useState(5);
-  const [comment, setComment] = useState('');
-  const [submitted, setSubmitted] = useState(false);
-
-  useEffect(() => {
-    fetch('/api/reviews')
-      .then(res => res.json())
-      .then(data => setReviews(data));
-  }, []);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      await fetch('/api/reviews', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, rating, comment })
-      });
-      setSubmitted(true);
-      setName('');
-      setComment('');
-      setRating(5);
-    } catch (err) {
-      alert('Failed to submit review.');
-    }
-  };
-
-  return (
-    <div className="pt-32 pb-24 max-w-7xl mx-auto px-4">
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-16">
-        <div className="lg:col-span-1">
-          <div className="glass-card p-8 rounded-[2.5rem] sticky top-32">
-            <h2 className="font-serif text-3xl mb-6 text-lake-blue">Share Your Experience</h2>
-            {submitted ? (
-              <div className="text-center py-8">
-                <CheckCircle2 className="mx-auto text-river-green mb-4" size={48} />
-                <p className="font-bold text-lg mb-2">Review Submitted!</p>
-                <p className="text-gray-500">Thanks for sharing. Your review will be visible after moderation.</p>
-                <button onClick={() => setSubmitted(false)} className="mt-6 text-lake-blue font-bold">Write another review</button>
-              </div>
-            ) : (
-              <form onSubmit={handleSubmit} className="space-y-6">
-                <div>
-                  <label className="block text-sm font-bold mb-2 uppercase">Your Name</label>
-                  <input 
-                    required
-                    type="text" 
-                    className="w-full p-4 rounded-2xl bg-gray-50 border border-gray-200 outline-none focus:ring-2 focus:ring-lake-blue"
-                    value={name}
-                    onChange={e => setName(e.target.value)}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-bold mb-2 uppercase">Rating</label>
-                  <StarRating rating={rating} setRating={setRating} interactive />
-                </div>
-                <div>
-                  <label className="block text-sm font-bold mb-2 uppercase">Your Review</label>
-                  <textarea 
-                    required
-                    rows={4} 
-                    className="w-full p-4 rounded-2xl bg-gray-50 border border-gray-200 outline-none focus:ring-2 focus:ring-lake-blue"
-                    value={comment}
-                    onChange={e => setComment(e.target.value)}
-                  ></textarea>
-                </div>
-                <button type="submit" className="btn-primary w-full">Submit Review</button>
-              </form>
-            )}
-          </div>
-        </div>
-        
-        <div className="lg:col-span-2">
-          <h1 className="font-serif text-5xl mb-12 text-lake-blue">Customer Reviews</h1>
-          <div className="space-y-8">
-            {reviews.length === 0 ? (
-              <div className="text-center py-20 text-gray-400">
-                <MessageSquare size={48} className="mx-auto mb-4 opacity-20" />
-                <p>No reviews yet. Be the first to share your experience!</p>
-              </div>
-            ) : (
-              reviews.map((review) => (
-                <motion.div 
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  key={review.id} 
-                  className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100"
-                >
-                  <div className="flex justify-between items-start mb-4">
-                    <div>
-                      <StarRating rating={review.rating} />
-                      <p className="mt-2 font-bold text-lg">{review.name}</p>
-                    </div>
-                    <span className="text-xs text-gray-400">{format(new Date(review.created_at), 'MMM d, yyyy')}</span>
-                  </div>
-                  <p className="text-gray-600 leading-relaxed italic">"{review.comment}"</p>
-                </motion.div>
-              ))
-            )}
-          </div>
-        </div>
-      </div>
     </div>
   );
 };
 
 const About = () => (
   <div className="pt-32 pb-24 max-w-4xl mx-auto px-4 text-center">
+    <img 
+      src="https://image2url.com/r2/default/images/1772999272617-606b620d-8e94-4e92-8327-826affa471e5.png" 
+      alt="Lazy Lakes Kayaks Logo" 
+      className="w-32 h-auto mx-auto mb-8"
+      referrerPolicy="no-referrer"
+    />
     <h1 className="font-serif text-5xl mb-12 text-lake-blue">Our Story</h1>
     <div className="space-y-6 text-lg text-gray-600 leading-relaxed text-left max-w-2xl mx-auto">
       <p>
@@ -720,6 +597,12 @@ const BookingForm = ({ onComplete }: { onComplete: (id: number) => void }) => {
   return (
     <div className="pt-32 pb-24 max-w-3xl mx-auto px-4">
       <div className="glass-card p-8 md:p-12 rounded-[2.5rem] shadow-xl">
+        <img 
+          src="https://image2url.com/r2/default/images/1772999272617-606b620d-8e94-4e92-8327-826affa471e5.png" 
+          alt="Lazy Lakes Kayaks Logo" 
+          className="w-20 h-auto mb-6"
+          referrerPolicy="no-referrer"
+        />
         <h1 className="font-serif text-4xl mb-4 text-lake-blue">Book Your Adventure</h1>
         <p className="text-gray-500 mb-8">Fill out the details below to request your rental.</p>
         
@@ -1191,6 +1074,12 @@ const Success = ({ onReset }: { onReset: () => void }) => (
       animate={{ scale: 1, opacity: 1 }}
       className="glass-card p-12 rounded-[3rem] shadow-2xl"
     >
+      <img 
+        src="https://image2url.com/r2/default/images/1772999272617-606b620d-8e94-4e92-8327-826affa471e5.png" 
+        alt="Lazy Lakes Kayaks Logo" 
+        className="w-24 h-auto mx-auto mb-8"
+        referrerPolicy="no-referrer"
+      />
       <div className="bg-river-green/10 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-8 text-river-green">
         <CheckCircle2 size={48} />
       </div>
@@ -1225,7 +1114,6 @@ export default function App() {
       case 'Book': return <BookingForm onComplete={(id) => { setBookingId(id); setActiveTab('Waiver'); }} />;
       case 'Waiver': return <Waiver bookingId={bookingId} onComplete={() => setActiveTab('Success')} />;
       case 'FAQ': return <FAQ />;
-      case 'Reviews': return <Reviews />;
       case 'Contact': return <Contact />;
       case 'Success': return <Success onReset={() => setActiveTab('Home')} />;
       default: return <Home onBook={() => setActiveTab('Book')} />;
@@ -1252,7 +1140,7 @@ export default function App() {
           </motion.div>
         </AnimatePresence>
       </main>
-      <Footer />
+      <Footer setActiveTab={setActiveTab} />
     </div>
   );
 }

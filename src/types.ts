@@ -23,15 +23,6 @@ export interface Waiver {
   signature: string;
 }
 
-export interface Review {
-  id: number;
-  name: string;
-  rating: number;
-  comment: string;
-  approved: boolean;
-  created_at: string;
-}
-
 export const PRICING = {
   KAYAK: {
     '2-Hour': 30,
