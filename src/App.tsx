@@ -57,6 +57,22 @@ const StarRating = ({ rating, setRating, interactive = false }: { rating: number
   );
 };
 
+const KayakIcon = ({ className = "w-6 h-6" }: { className?: string }) => (
+  <svg 
+    viewBox="0 0 24 24" 
+    fill="none" 
+    stroke="currentColor" 
+    strokeWidth="2" 
+    strokeLinecap="round" 
+    strokeLinejoin="round" 
+    className={className}
+  >
+    <path d="M2 12s4-3 10-3 10 3 10 3-4 3-10 3-10-3-10-3Z" />
+    <path d="M12 9v6" />
+    <path d="M9 12h6" />
+  </svg>
+);
+
 const Navbar = ({ activeTab, setActiveTab }: { activeTab: string, setActiveTab: (t: string) => void }) => {
   const [isOpen, setIsOpen] = useState(false);
   const tabs = ['Home', 'About', 'Rentals', 'Book', 'Waiver', 'FAQ', 'Reviews', 'Contact'];
@@ -66,12 +82,9 @@ const Navbar = ({ activeTab, setActiveTab }: { activeTab: string, setActiveTab: 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-20 items-center">
           <div className="flex items-center gap-3 cursor-pointer" onClick={() => setActiveTab('Home')}>
-            <img 
-              src="https://images.unsplash.com/photo-1599058917233-35835bc3b06e?auto=format&fit=crop&q=80&w=64&h=64" 
-              alt="Lazy Lakes Logo" 
-              className="w-10 h-10 rounded-lg object-cover shadow-sm"
-              referrerPolicy="no-referrer"
-            />
+            <div className="bg-lake-blue/10 p-2 rounded-xl text-lake-blue shadow-sm">
+              <KayakIcon className="w-6 h-6" />
+            </div>
             <span className="font-serif text-2xl font-bold text-lake-blue tracking-tight">Lazy Lakes Kayaks</span>
           </div>
           
@@ -316,7 +329,12 @@ const Footer = () => (
   <footer className="bg-lake-blue text-white py-16">
     <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 md:grid-cols-3 gap-12">
       <div>
-        <h3 className="font-serif text-2xl mb-4">Lazy Lakes Kayaks</h3>
+        <div className="flex items-center gap-3 mb-4">
+          <div className="bg-white/10 p-2 rounded-lg text-white">
+            <KayakIcon className="w-6 h-6" />
+          </div>
+          <h3 className="font-serif text-2xl">Lazy Lakes Kayaks</h3>
+        </div>
         <p className="text-blue-100/80 mb-6">
           Single-owner business operated by Nick Brooks. Serving the Houghton Lake & Higgins Lake area.
         </p>
@@ -364,32 +382,31 @@ const Home = ({ onBook }: { onBook: () => void }) => {
           >
             Lazy Lakes Kayaks
           </motion.h1>
-          <div className="flex flex-col md:flex-row items-center gap-8 mb-12">
-            <motion.p 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-              className="text-xl md:text-2xl font-light md:text-left flex-1"
-            >
-              Established in Houghton Lake, Michigan. Beginner-friendly kayak and paddle board rentals in the heart of Michigan's lake country.
-            </motion.p>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.6 }}
-              className="w-full md:w-80 shrink-0"
-            >
-              <WeatherWidget />
-            </motion.div>
-          </div>
+          <motion.p 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="text-xl md:text-2xl mb-8 font-light"
+          >
+            Established in Houghton Lake, Michigan. Beginner-friendly kayak and paddle board rentals in the heart of Michigan's lake country.
+          </motion.p>
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 }}
-            className="flex flex-col sm:flex-row gap-4 justify-center md:justify-start"
+            className="flex flex-col sm:flex-row gap-4 justify-center mb-12"
           >
             <button onClick={onBook} className="btn-secondary text-lg px-10">Book Your Kayak Today</button>
             <a href="tel:630-528-8103" className="btn-primary text-lg px-10 bg-navy-blue text-white border-none">Call or Text Now</a>
+          </motion.div>
+          
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.6 }}
+            className="max-w-md mx-auto"
+          >
+            <WeatherWidget />
           </motion.div>
         </div>
       </section>
