@@ -23,6 +23,10 @@ import DatePicker from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
 import { PRICING, LOCATIONS, Booking } from './types';
 
+// --- Configuration for GitHub Pages ---
+// Get a free Form ID from https://formspree.io/
+const FORMSPREE_ID = "xwvrpgwb"; 
+
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
 import "leaflet/dist/leaflet.css";
@@ -527,20 +531,7 @@ const Rentals = ({ onBook }: { onBook: () => void }) => (
   </div>
 );
 
-const BookingForm = ({ onComplete }: { onComplete: (id: number) => void }) => {
-  const [formData, setFormData] = useState<Partial<Booking>>({
-    kayaks: 0,
-    paddleBoards: 0,
-    duration: '2-Hour',
-    location: 'Houghton Lake',
-    addOns: [],
-    lifeJacket: 'provided',
-    paymentMethod: 'Cash',
-    guidedTourHours: 0,
-    notes: '',
-    date: format(new Date(), 'yyyy-MM-dd')
-  });
-
+const BookingForm = ({ onComplete, formData, setFormData }: { onComplete: () => void, formData: Partial<Booking>, setFormData: (d: any) => void }) => {
   const getDurationHours = (d: string) => {
     if (d === '1-Hour') return 1;
     if (d === '2-Hour') return 2;
@@ -572,26 +563,10 @@ const BookingForm = ({ onComplete }: { onComplete: (id: number) => void }) => {
     }
     return total;
   };
-  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-    try {
-      const res = await fetch('/api/bookings', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
-      });
-      const data = await res.json();
-      if (data.success) {
-        onComplete(data.bookingId);
-      }
-    } catch (err) {
-      alert('Failed to submit booking. Please try again.');
-    } finally {
-      setLoading(false);
-    }
+    onComplete();
   };
 
   return (
@@ -847,10 +822,9 @@ const BookingForm = ({ onComplete }: { onComplete: (id: number) => void }) => {
 
           <button 
             type="submit" 
-            disabled={loading}
-            className="btn-secondary w-full text-lg py-4 disabled:opacity-50"
+            className="btn-secondary w-full text-lg py-4"
           >
-            {loading ? 'Processing...' : 'Continue to Waiver'}
+            Continue to Waiver
           </button>
         </form>
       </div>
@@ -858,7 +832,7 @@ const BookingForm = ({ onComplete }: { onComplete: (id: number) => void }) => {
   );
 };
 
-const Waiver = ({ bookingId, onComplete }: { bookingId?: number, onComplete: () => void }) => {
+const Waiver = ({ formData, onComplete }: { formData: Partial<Booking>, onComplete: () => void }) => {
   const [signed, setSigned] = useState(false);
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
@@ -876,20 +850,38 @@ const Waiver = ({ bookingId, onComplete }: { bookingId?: number, onComplete: () 
     }
     setLoading(true);
     try {
-      const signatureData = sigCanvas.current?.getTrimmedCanvas().toDataURL('image/png');
-      await fetch('/api/waiver', {
+      const signatureData = sigCanvas.current?.getCanvas().toDataURL('image/png');
+      
+      // Combine all data for Formspree
+      const submissionData = {
+        ...formData,
+        waiver_name: name,
+        waiver_signature_image: signatureData,
+        _replyto: formData.email,
+        _subject: `New Booking Request: ${formData.name} (${formData.date})`,
+      };
+
+      console.log('Sending submission to Formspree:', submissionData);
+
+      const res = await fetch(`https://formspree.io/f/${FORMSPREE_ID}`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          bookingId, 
-          name, 
-          signature: name, 
-          virtualSignature: signatureData 
-        })
+        headers: { 
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify(submissionData)
       });
-      onComplete();
-    } catch (err) {
-      alert('Failed to submit waiver.');
+
+      if (res.ok) {
+        onComplete();
+      } else {
+        const errorData = await res.json();
+        console.error('Formspree Error:', errorData);
+        throw new Error(errorData.error || 'Failed to send to Formspree');
+      }
+    } catch (err: any) {
+      console.error('Submission Error:', err);
+      alert(`Failed to submit booking: ${err.message || 'Please check your internet connection.'}`);
     } finally {
       setLoading(false);
     }
@@ -1085,8 +1077,26 @@ const Success = ({ onReset }: { onReset: () => void }) => (
       </div>
       <h1 className="font-serif text-4xl mb-4 text-lake-blue">Booking Received!</h1>
       <p className="text-gray-600 text-lg mb-8">
-        Thank you for choosing Lazy Lakes Kayaks. We've sent a confirmation email to your inbox. Nicholas will reach out shortly to finalize the details.
+        Thank you for choosing Lazy Lakes Kayaks. Nicholas will reach out shortly to finalize the details.
       </p>
+      
+      <div className="bg-lake-blue/5 p-6 rounded-2xl mb-8 text-left border border-lake-blue/10">
+        <p className="font-bold text-lake-blue mb-2">Have Questions?</p>
+        <p className="text-sm text-gray-600 mb-4">
+          Feel free to reach out to us directly:
+        </p>
+        <div className="space-y-3">
+          <div className="flex items-center gap-3">
+            <div className="bg-lake-blue/10 p-2 rounded-lg text-lake-blue"><Phone size={16} /></div>
+            <p className="text-sm font-medium">630-528-8103</p>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="bg-lake-blue/10 p-2 rounded-lg text-lake-blue"><Mail size={16} /></div>
+            <p className="text-sm font-medium">lazylakeskayaks@yahoo.com</p>
+          </div>
+        </div>
+      </div>
+
       <div className="bg-sunset-orange/5 p-6 rounded-2xl mb-8 text-left border border-sunset-orange/10">
         <p className="font-bold text-sunset-orange mb-2">Important Reminders:</p>
         <ul className="text-sm text-gray-600 space-y-2">
@@ -1104,18 +1114,43 @@ const Success = ({ onReset }: { onReset: () => void }) => (
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('Home');
-  const [bookingId, setBookingId] = useState<number>();
+  const [formData, setFormData] = useState<Partial<Booking>>({
+    kayaks: 0,
+    paddleBoards: 0,
+    duration: '2-Hour',
+    location: 'Houghton Lake',
+    addOns: [],
+    lifeJacket: 'provided',
+    paymentMethod: 'Cash',
+    guidedTourHours: 0,
+    notes: '',
+    date: format(new Date(), 'yyyy-MM-dd')
+  });
 
   const renderContent = () => {
     switch (activeTab) {
       case 'Home': return <Home onBook={() => setActiveTab('Book')} />;
       case 'About': return <About />;
       case 'Rentals': return <Rentals onBook={() => setActiveTab('Book')} />;
-      case 'Book': return <BookingForm onComplete={(id) => { setBookingId(id); setActiveTab('Waiver'); }} />;
-      case 'Waiver': return <Waiver bookingId={bookingId} onComplete={() => setActiveTab('Success')} />;
+      case 'Book': return <BookingForm formData={formData} setFormData={setFormData} onComplete={() => setActiveTab('Waiver')} />;
+      case 'Waiver': return <Waiver formData={formData} onComplete={() => setActiveTab('Success')} />;
       case 'FAQ': return <FAQ />;
       case 'Contact': return <Contact />;
-      case 'Success': return <Success onReset={() => setActiveTab('Home')} />;
+      case 'Success': return <Success onReset={() => {
+        setFormData({
+          kayaks: 0,
+          paddleBoards: 0,
+          duration: '2-Hour',
+          location: 'Houghton Lake',
+          addOns: [],
+          lifeJacket: 'provided',
+          paymentMethod: 'Cash',
+          guidedTourHours: 0,
+          notes: '',
+          date: format(new Date(), 'yyyy-MM-dd')
+        });
+        setActiveTab('Home');
+      }} />;
       default: return <Home onBook={() => setActiveTab('Book')} />;
     }
   };
