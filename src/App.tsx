@@ -561,19 +561,66 @@ const Reviews = () => {
 const Admin = () => {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [password, setPassword] = useState('');
+  const [loginError, setLoginError] = useState('');
+
+  const checkStatus = async () => {
+    try {
+      const res = await fetch('/api/admin/status');
+      const data = await res.json();
+      setIsAdmin(data.isAdmin);
+      if (data.isAdmin) {
+        fetchReviews();
+      } else {
+        setLoading(false);
+      }
+    } catch (err) {
+      setLoading(false);
+    }
+  };
 
   const fetchReviews = () => {
+    setLoading(true);
     fetch('/api/admin/reviews')
       .then(res => res.json())
       .then(data => {
         setReviews(data);
         setLoading(false);
-      });
+      })
+      .catch(() => setLoading(false));
   };
 
   useEffect(() => {
-    fetchReviews();
+    checkStatus();
   }, []);
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoginError('');
+    try {
+      const res = await fetch('/api/admin/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setIsAdmin(true);
+        fetchReviews();
+      } else {
+        setLoginError('Invalid password');
+      }
+    } catch (err) {
+      setLoginError('Login failed');
+    }
+  };
+
+  const handleLogout = async () => {
+    await fetch('/api/admin/logout', { method: 'POST' });
+    setIsAdmin(false);
+    setReviews([]);
+  };
 
   const handleApprove = async (id: number, approved: boolean) => {
     await fetch('/api/admin/reviews/approve', {
@@ -590,9 +637,39 @@ const Admin = () => {
     fetchReviews();
   };
 
+  if (!isAdmin && !loading) {
+    return (
+      <div className="pt-32 pb-24 max-w-md mx-auto px-4">
+        <div className="glass-card p-8 rounded-[2.5rem] shadow-xl text-center">
+          <div className="bg-lake-blue/10 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6 text-lake-blue">
+            <Lock size={32} />
+          </div>
+          <h1 className="font-serif text-3xl mb-2 text-lake-blue">Admin Access</h1>
+          <p className="text-gray-500 mb-8">Please enter the owner password to moderate reviews.</p>
+          
+          <form onSubmit={handleLogin} className="space-y-4">
+            <input 
+              type="password" 
+              placeholder="Password"
+              className="w-full p-4 rounded-2xl bg-gray-50 border border-gray-200 outline-none focus:ring-2 focus:ring-lake-blue"
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              required
+            />
+            {loginError && <p className="text-red-500 text-sm">{loginError}</p>}
+            <button type="submit" className="btn-primary w-full">Login</button>
+          </form>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="pt-32 pb-24 max-w-7xl mx-auto px-4">
-      <h1 className="font-serif text-5xl mb-12 text-lake-blue">Review Moderation</h1>
+      <div className="flex justify-between items-center mb-12">
+        <h1 className="font-serif text-5xl text-lake-blue">Review Moderation</h1>
+        <button onClick={handleLogout} className="text-gray-400 hover:text-lake-blue font-medium transition-colors">Logout</button>
+      </div>
       
       {loading ? (
         <p>Loading reviews...</p>
