@@ -1,0 +1,39 @@
+@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap');
+@import url('https://unpkg.com/leaflet@1.9.4/dist/leaflet.css');
+
+@theme {
+  --font-sans: "Outfit", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Playfair Display", serif;
+  
+  --color-white: #ffffff;
+  --color-forest-green: #228b22;
+  --color-navy-blue: #000080;
+  --color-blue: #0000ff;
+  --color-orange: #ffa500;
+  
+  /* Aliases for existing components */
+  --color-lake-blue: var(--color-navy-blue);
+  --color-river-green: var(--color-forest-green);
+  --color-sunset-orange: var(--color-orange);
+  --color-sand: var(--color-white);
+}
+
+body {
+  background-color: var(--color-sand);
+  color: #1a1a1a;
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.btn-primary {
+  @apply bg-lake-blue text-white px-6 py-3 rounded-full font-medium transition-all hover:opacity-90 hover:scale-105 active:scale-95;
+}
+
+.btn-secondary {
+  @apply bg-sunset-orange text-white px-6 py-3 rounded-full font-medium transition-all hover:opacity-90 hover:scale-105 active:scale-95;
+}
