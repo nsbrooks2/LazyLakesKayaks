@@ -19,8 +19,7 @@ import {
   DollarSign,
   Star,
   MessageSquare,
-  Trash2,
-  Lock
+  Trash2
 } from 'lucide-react';
 import { format } from 'date-fns';
 import DatePicker from 'react-datepicker';
@@ -100,14 +99,6 @@ const Navbar = ({ activeTab, setActiveTab }: { activeTab: string, setActiveTab: 
                 {tab}
               </button>
             ))}
-            <button 
-              onClick={() => setActiveTab('Admin')}
-              className={`text-sm font-medium transition-colors hover:text-lake-blue flex items-center gap-1 ${
-                activeTab === 'Admin' ? 'text-lake-blue' : 'text-gray-400'
-              }`}
-            >
-              <Lock size={14} />
-            </button>
           </div>
 
           <div className="md:hidden">
@@ -135,12 +126,6 @@ const Navbar = ({ activeTab, setActiveTab }: { activeTab: string, setActiveTab: 
                 {tab}
               </button>
             ))}
-            <button
-              onClick={() => { setActiveTab('Admin'); setIsOpen(false); }}
-              className="block w-full text-left text-lg font-medium text-gray-400 flex items-center gap-2"
-            >
-              <Lock size={16} /> Admin
-            </button>
           </motion.div>
         )}
       </AnimatePresence>
@@ -554,160 +539,6 @@ const Reviews = () => {
           </div>
         </div>
       </div>
-    </div>
-  );
-};
-
-const Admin = () => {
-  const [reviews, setReviews] = useState<Review[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [password, setPassword] = useState('');
-  const [loginError, setLoginError] = useState('');
-
-  const checkStatus = async () => {
-    try {
-      const res = await fetch('/api/admin/status');
-      const data = await res.json();
-      setIsAdmin(data.isAdmin);
-      if (data.isAdmin) {
-        fetchReviews();
-      } else {
-        setLoading(false);
-      }
-    } catch (err) {
-      setLoading(false);
-    }
-  };
-
-  const fetchReviews = () => {
-    setLoading(true);
-    fetch('/api/admin/reviews')
-      .then(res => res.json())
-      .then(data => {
-        setReviews(data);
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
-  };
-
-  useEffect(() => {
-    checkStatus();
-  }, []);
-
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoginError('');
-    try {
-      const res = await fetch('/api/admin/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password })
-      });
-      const data = await res.json();
-      if (data.success) {
-        setIsAdmin(true);
-        fetchReviews();
-      } else {
-        setLoginError('Invalid password');
-      }
-    } catch (err) {
-      setLoginError('Login failed');
-    }
-  };
-
-  const handleLogout = async () => {
-    await fetch('/api/admin/logout', { method: 'POST' });
-    setIsAdmin(false);
-    setReviews([]);
-  };
-
-  const handleApprove = async (id: number, approved: boolean) => {
-    await fetch('/api/admin/reviews/approve', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id, approved })
-    });
-    fetchReviews();
-  };
-
-  const handleDelete = async (id: number) => {
-    if (!confirm('Are you sure you want to delete this review?')) return;
-    await fetch(`/api/admin/reviews/${id}`, { method: 'DELETE' });
-    fetchReviews();
-  };
-
-  if (!isAdmin && !loading) {
-    return (
-      <div className="pt-32 pb-24 max-w-md mx-auto px-4">
-        <div className="glass-card p-8 rounded-[2.5rem] shadow-xl text-center">
-          <div className="bg-lake-blue/10 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6 text-lake-blue">
-            <Lock size={32} />
-          </div>
-          <h1 className="font-serif text-3xl mb-2 text-lake-blue">Admin Access</h1>
-          <p className="text-gray-500 mb-8">Please enter the owner password to moderate reviews.</p>
-          
-          <form onSubmit={handleLogin} className="space-y-4">
-            <input 
-              type="password" 
-              placeholder="Password"
-              className="w-full p-4 rounded-2xl bg-gray-50 border border-gray-200 outline-none focus:ring-2 focus:ring-lake-blue"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              required
-            />
-            {loginError && <p className="text-red-500 text-sm">{loginError}</p>}
-            <button type="submit" className="btn-primary w-full">Login</button>
-          </form>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="pt-32 pb-24 max-w-7xl mx-auto px-4">
-      <div className="flex justify-between items-center mb-12">
-        <h1 className="font-serif text-5xl text-lake-blue">Review Moderation</h1>
-        <button onClick={handleLogout} className="text-gray-400 hover:text-lake-blue font-medium transition-colors">Logout</button>
-      </div>
-      
-      {loading ? (
-        <p>Loading reviews...</p>
-      ) : (
-        <div className="space-y-6">
-          {reviews.map((review) => (
-            <div key={review.id} className={`p-6 rounded-3xl border ${review.approved ? 'bg-white border-gray-100' : 'bg-sunset-orange/5 border-sunset-orange/20'}`}>
-              <div className="flex justify-between items-start">
-                <div className="flex-grow">
-                  <div className="flex items-center gap-4 mb-2">
-                    <StarRating rating={review.rating} />
-                    <span className={`text-xs px-2 py-1 rounded-full font-bold uppercase ${review.approved ? 'bg-river-green/10 text-river-green' : 'bg-sunset-orange/10 text-sunset-orange'}`}>
-                      {review.approved ? 'Approved' : 'Pending Approval'}
-                    </span>
-                  </div>
-                  <p className="font-bold">{review.name} <span className="font-normal text-gray-400 text-sm ml-2">{format(new Date(review.created_at), 'MMM d, yyyy HH:mm')}</span></p>
-                  <p className="text-gray-600 mt-2 italic">"{review.comment}"</p>
-                </div>
-                <div className="flex gap-2 ml-4">
-                  <button 
-                    onClick={() => handleApprove(review.id, !review.approved)}
-                    className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${review.approved ? 'bg-gray-100 text-gray-600 hover:bg-gray-200' : 'bg-river-green text-white hover:bg-opacity-90'}`}
-                  >
-                    {review.approved ? 'Unapprove' : 'Approve'}
-                  </button>
-                  <button 
-                    onClick={() => handleDelete(review.id)}
-                    className="p-2 rounded-xl bg-red-50 text-red-500 hover:bg-red-100 transition-all"
-                  >
-                    <Trash2 size={20} />
-                  </button>
-                </div>
-              </div>
-            </div>
-          ))}
-          {reviews.length === 0 && <p className="text-gray-400">No reviews to moderate.</p>}
-        </div>
-      )}
     </div>
   );
 };
@@ -1395,7 +1226,6 @@ export default function App() {
       case 'Waiver': return <Waiver bookingId={bookingId} onComplete={() => setActiveTab('Success')} />;
       case 'FAQ': return <FAQ />;
       case 'Reviews': return <Reviews />;
-      case 'Admin': return <Admin />;
       case 'Contact': return <Contact />;
       case 'Success': return <Success onReset={() => setActiveTab('Home')} />;
       default: return <Home onBook={() => setActiveTab('Book')} />;

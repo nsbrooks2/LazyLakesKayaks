@@ -6,8 +6,6 @@ import path from "path";
 import dotenv from "dotenv";
 import rateLimit from "express-rate-limit";
 import { GoogleGenAI } from "@google/genai";
-import session from "express-session";
-import cookieParser from "cookie-parser";
 
 dotenv.config();
 
@@ -65,18 +63,6 @@ async function startServer() {
   const PORT = 3000;
 
   app.use(express.json());
-  app.use(cookieParser());
-  app.use(session({
-    secret: process.env.SESSION_SECRET || "lazy-lake-secret",
-    resave: false,
-    saveUninitialized: false,
-    cookie: { 
-      secure: process.env.NODE_ENV === "production",
-      sameSite: 'none',
-      httpOnly: true,
-      maxAge: 24 * 60 * 60 * 1000 // 24 hours
-    }
-  }));
 
   // Email Transporter
   const transporter = (process.env.SMTP_HOST && !process.env.SMTP_HOST.includes('@')) 
@@ -193,64 +179,6 @@ async function startServer() {
       res.json({ success: true });
     } catch (error) {
       res.status(500).json({ error: "Failed to submit review" });
-    }
-  });
-
-  // Admin Authentication
-  app.post("/api/admin/login", (req, res) => {
-    const { password } = req.body;
-    const adminPassword = process.env.ADMIN_PASSWORD || "admin123"; // Default for dev if not set
-
-    if (password === adminPassword) {
-      (req.session as any).isAdmin = true;
-      res.json({ success: true });
-    } else {
-      res.status(401).json({ error: "Invalid password" });
-    }
-  });
-
-  app.post("/api/admin/logout", (req, res) => {
-    req.session.destroy(() => {
-      res.json({ success: true });
-    });
-  });
-
-  app.get("/api/admin/status", (req, res) => {
-    res.json({ isAdmin: !!(req.session as any).isAdmin });
-  });
-
-  // Admin Middleware
-  const adminOnly = (req: express.Request, res: express.Response, next: express.NextFunction) => {
-    if ((req.session as any).isAdmin) {
-      next();
-    } else {
-      res.status(403).json({ error: "Unauthorized" });
-    }
-  };
-
-  // Simple Admin Routes (Protected)
-  app.get("/api/admin/reviews", adminOnly, (req, res) => {
-    const reviews = db.prepare("SELECT * FROM reviews ORDER BY created_at DESC").all();
-    res.json(reviews);
-  });
-
-  app.post("/api/admin/reviews/approve", adminOnly, (req, res) => {
-    const { id, approved } = req.body;
-    try {
-      db.prepare("UPDATE reviews SET approved = ? WHERE id = ?").run(approved ? 1 : 0, id);
-      res.json({ success: true });
-    } catch (error) {
-      res.status(500).json({ error: "Failed to update review status" });
-    }
-  });
-
-  app.delete("/api/admin/reviews/:id", adminOnly, (req, res) => {
-    const { id } = req.params;
-    try {
-      db.prepare("DELETE FROM reviews WHERE id = ?").run(id);
-      res.json({ success: true });
-    } catch (error) {
-      res.status(500).json({ error: "Failed to delete review" });
     }
   });
 
